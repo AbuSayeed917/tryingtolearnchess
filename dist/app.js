@@ -1,4 +1,5 @@
 import {Chess} from './chess.js';
+import {mountExplorer} from './explorer.js';
 import {lessons,puzzles} from './curriculum.js';
 const $=id=>document.getElementById(id), names={p:'pawn',n:'knight',b:'bishop',r:'rook',q:'queen',k:'king'},symbols={p:'♟',n:'♞',b:'♝',r:'♜',q:'♛',k:'♚'},values={p:100,n:320,b:330,r:500,q:900,k:0};
 let showThreats=true, hinted=null, reviewText='', completed=new Set(), practiceSnapshot=null;
@@ -59,3 +60,5 @@ $('learning-style').onchange=e=>{guided=e.target.value==='guided';showThreats=gu
 $('show-threats').onchange=e=>{showThreats=e.target.checked;render();};$('next-step').onclick=()=>{if(mode==='lessons'){if(lesson<lessons.length-1){lesson++;start();}else start('play',true);}else {puzzle=(puzzle+1)%puzzles.length;start();}};
 start();
 if(document.modelContext?.registerTool){for(const tool of [{name:'read_chess_position',description:'Read the current board and legal moves.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>({fen:game.fen(),mode,legalMoves:game.moves(),busy,puzzleStage,solved,lessonsCompleted:completed.size,puzzlesCompleted:puzzlesCompleted.size})},{name:'preview_chess_move',description:'Stage a legal white move for the learner to review and confirm. Does not play the move.',inputSchema:{type:'object',properties:{from:{type:'string'},to:{type:'string'}},required:['from','to'],additionalProperties:false},annotations:{readOnlyHint:false},execute:input=>{if(busy||solved||game.turn()!=='w'||!game.moves({verbose:true}).some(m=>m.from===input.from&&m.to===input.to))throw new Error('Move is not available.');selectSquare(input.from);selectSquare(input.to,true);return {staged:!!pending,from:pending?.from,to:pending?.to};}}]){try{Promise.resolve(document.modelContext.registerTool(tool)).catch(()=>{});}catch{}}}
+
+mountExplorer(document,()=>game.fen());
